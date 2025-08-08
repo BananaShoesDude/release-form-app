@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Release Form Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .signature-pad {
+            touch-action: none;
+            border: 2px dashed #d1d5db;
+        }
+        /* The canvas is now only for previewing, not final generation, so it can be hidden */
+        #generated-release-canvas {
+            display: none;
+        }
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        .form-toggle-btn.active {
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .form-toggle-btn.inactive {
+            background-color: #e2e8f0; /* slate-200 */
+            color: #475569; /* slate-600 */
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-6 md:p-10 space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Field Release Form</h1>
+            <p class="text-slate-500 mt-2">Generate, sign, and verify release forms on the go.</p>
+        </div>
+        
+        <!-- Form Type Toggle -->
+        <div class="space-y-4">
+            <h2 class="text-xl font-semibold border-b pb-2">Select Form Type</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                 <button id="select-talent-form" class="form-toggle-btn p-3 rounded-lg font-semibold transition-all active">Talent Release</button>
+                 <button id="select-materials-form" class="form-toggle-btn p-3 rounded-lg font-semibold transition-all inactive">Materials Release</button>
+                 <button id="select-location-form" class="form-toggle-btn p-3 rounded-lg font-semibold transition-all inactive">Location Release</button>
+            </div>
+        </div>
+
+        <!-- Universal Project Details -->
+        <div class="space-y-4">
+            <h2 class="text-xl font-semibold border-b pb-2">Step 1: Project Details</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <input type="text" id="filmmaker-name" placeholder="Filmmaker/Production Company" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                <input type="text" id="project-name" placeholder="Film Title" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+            </div>
+        </div>
+        
+        <!-- TALENT RELEASE FORM CONTAINER -->
+        <div id="talent-form-container">
+            <div>
+                <label for="talent-release-text" class="block text-sm font-medium text-slate-600 mb-1">Talent Release Form Text (Editable)</label>
+                <textarea id="talent-release-text" rows="8" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition text-sm"></textarea>
+                <div class="flex gap-2 mt-2">
+                    <button id="save-talent-text" class="text-xs bg-blue-100 text-blue-700 font-semibold py-1 px-3 rounded-md hover:bg-blue-200 transition">Save Custom Text</button>
+                    <button id="revert-talent-text" class="text-xs bg-slate-100 text-slate-700 font-semibold py-1 px-3 rounded-md hover:bg-slate-200 transition">Revert to Default</button>
+                </div>
+            </div>
+            <div class="space-y-4 mt-8">
+                <h2 class="text-xl font-semibold border-b pb-2">Step 2: Your Information</h2>
+                <div class="bg-slate-50 p-4 rounded-lg space-y-4">
+                    <div>
+                        <label for="subject-name" class="block text-sm font-medium text-slate-600 mb-1">Full Name (Print)</label>
+                        <input type="text" id="subject-name" placeholder="Enter full name here" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div><label for="subject-email" class="block text-sm font-medium text-slate-600 mb-1">Email Address</label><input type="email" id="subject-email" placeholder="email@example.com" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition"></div>
+                        <div><label for="subject-phone" class="block text-sm font-medium text-slate-600 mb-1">Phone Number</label><input type="tel" id="subject-phone" placeholder="(555) 123-4567" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition"></div>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-600 mb-2">Sign in the box below:</p>
+                        <canvas id="talent-signature-pad" class="signature-pad w-full h-24 bg-white rounded-lg cursor-crosshair"></canvas>
+                        <button id="clear-talent-signature" class="mt-2 text-sm text-blue-600 hover:text-blue-800 transition">Clear Signature</button>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-4 mt-8">
+                <h2 class="text-xl font-semibold border-b pb-2">Step 3: Verification Photo</h2>
+                <div class="flex flex-col items-center gap-4">
+                    <div class="relative w-full max-w-md aspect-video bg-slate-200 rounded-lg overflow-hidden flex items-center justify-center">
+                        <video id="video-feed" playsinline autoplay class="w-full h-full object-cover"></video>
+                        <p id="camera-placeholder" class="text-slate-500 text-center p-4">Camera feed will appear here</p>
+                    </div>
+                    <div class="flex gap-4 w-full max-w-md"><button id="start-camera" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition shadow-md">Start Camera</button><button id="take-photo" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition shadow-md" disabled>Take Photo</button></div>
+                    <div id="photo-preview-container" class="hidden w-32 h-24 rounded-lg overflow-hidden border-2 border-green-500"><img id="photo-preview" src="" alt="Photo Preview" class="w-full h-full object-cover"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MATERIALS RELEASE FORM CONTAINER -->
+        <div id="materials-form-container" class="hidden">
+             <div>
+                <label for="materials-release-text" class="block text-sm font-medium text-slate-600 mb-1">Materials Release Form Text (Editable)</label>
+                <textarea id="materials-release-text" rows="8" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition text-sm"></textarea>
+                <div class="flex gap-2 mt-2">
+                    <button id="save-materials-text" class="text-xs bg-blue-100 text-blue-700 font-semibold py-1 px-3 rounded-md hover:bg-blue-200 transition">Save Custom Text</button>
+                    <button id="revert-materials-text" class="text-xs bg-slate-100 text-slate-700 font-semibold py-1 px-3 rounded-md hover:bg-slate-200 transition">Revert to Default</button>
+                </div>
+            </div>
+            <div class="space-y-4 mt-8">
+                <h2 class="text-xl font-semibold border-b pb-2">Step 2: Grantor's Information</h2>
+                 <div class="bg-slate-50 p-4 rounded-lg space-y-4">
+                    <div>
+                        <label for="grantor-name" class="block text-sm font-medium text-slate-600 mb-1">Grantor's Full Name (Print)</label>
+                        <input type="text" id="grantor-name" placeholder="Enter full name here" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                     <div>
+                        <label for="grantor-company" class="block text-sm font-medium text-slate-600 mb-1">Organization/Company (Optional)</label>
+                        <input type="text" id="grantor-company" placeholder="Enter company name" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                     <div class="grid md:grid-cols-2 gap-4">
+                        <div><label for="grantor-email" class="block text-sm font-medium text-slate-600 mb-1">Email Address</label><input type="email" id="grantor-email" placeholder="email@example.com" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition"></div>
+                        <div><label for="grantor-phone" class="block text-sm font-medium text-slate-600 mb-1">Phone Number</label><input type="tel" id="grantor-phone" placeholder="(555) 123-4567" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition"></div>
+                    </div>
+                     <div>
+                        <label for="materials-description" class="block text-sm font-medium text-slate-600 mb-1">Description of Materials</label>
+                        <textarea id="materials-description" rows="4" placeholder="e.g., Family photos from 1980-1990, VHS tape of the 1992 wedding, personal letters..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition text-sm"></textarea>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-600 mb-2">Sign in the box below:</p>
+                        <canvas id="materials-signature-pad" class="signature-pad w-full h-24 bg-white rounded-lg cursor-crosshair"></canvas>
+                        <button id="clear-materials-signature" class="mt-2 text-sm text-blue-600 hover:text-blue-800 transition">Clear Signature</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- LOCATION RELEASE FORM CONTAINER -->
+        <div id="location-form-container" class="hidden">
+             <div>
+                <label for="location-release-text" class="block text-sm font-medium text-slate-600 mb-1">Location Release Form Text (Editable)</label>
+                <textarea id="location-release-text" rows="8" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition text-sm"></textarea>
+                <div class="flex gap-2 mt-2">
+                    <button id="save-location-text" class="text-xs bg-blue-100 text-blue-700 font-semibold py-1 px-3 rounded-md hover:bg-blue-200 transition">Save Custom Text</button>
+                    <button id="revert-location-text" class="text-xs bg-slate-100 text-slate-700 font-semibold py-1 px-3 rounded-md hover:bg-slate-200 transition">Revert to Default</button>
+                </div>
+            </div>
+            <div class="space-y-4 mt-8">
+                <h2 class="text-xl font-semibold border-b pb-2">Step 2: Location & Owner Information</h2>
+                 <div class="bg-slate-50 p-4 rounded-lg space-y-4">
+                    <div>
+                        <label for="owner-name" class="block text-sm font-medium text-slate-600 mb-1">Property Owner / Representative Name (Print)</label>
+                        <input type="text" id="owner-name" placeholder="Enter full name here" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                    <div>
+                        <label for="location-address" class="block text-sm font-medium text-slate-600 mb-1">Location Address</label>
+                        <textarea id="location-address" rows="3" placeholder="123 Main Street, Anytown, USA 12345" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition text-sm"></textarea>
+                    </div>
+                     <div class="grid md:grid-cols-2 gap-4">
+                        <div><label for="owner-email" class="block text-sm font-medium text-slate-600 mb-1">Email Address</label><input type="email" id="owner-email" placeholder="email@example.com" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition"></div>
+                        <div><label for="owner-phone" class="block text-sm font-medium text-slate-600 mb-1">Phone Number</label><input type="tel" id="owner-phone" placeholder="(555) 123-4567" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition"></div>
+                    </div>
+                     <div>
+                        <label for="location-terms" class="block text-sm font-medium text-slate-600 mb-1">Specific Terms or Restrictions (Optional)</label>
+                        <textarea id="location-terms" rows="3" placeholder="e.g., Filming permitted only between 9 AM and 5 PM. No access to the second floor." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition text-sm"></textarea>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-600 mb-2">Sign in the box below:</p>
+                        <canvas id="location-signature-pad" class="signature-pad w-full h-24 bg-white rounded-lg cursor-crosshair"></canvas>
+                        <button id="clear-location-signature" class="mt-2 text-sm text-blue-600 hover:text-blue-800 transition">Clear Signature</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Step 4: Generate & Download -->
+        <div class="pt-6 border-t space-y-4">
+            <button id="generate-release" class="w-full bg-slate-800 text-white font-bold text-lg py-4 px-4 rounded-lg hover:bg-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-400 transition-transform transform hover:scale-105 shadow-xl" disabled>
+                Generate & Preview Release Form
+            </button>
+             <button id="reset-form" class="w-full bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-lg hover:bg-slate-300 transition">
+                Reset Current Form
+            </button>
+        </div>
+
+        <!-- Modal for Previewing and Downloading the Final Release -->
+        <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+            <div class="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] p-6 space-y-4 overflow-y-auto">
+                <h2 id="modal-title" class="text-2xl font-bold text-center">Generated Release</h2>
+                <div class="bg-slate-100 p-4 rounded-lg">
+                    <p class="text-center text-sm text-slate-500 mb-2">This is a quick preview. The final downloaded/emailed PDF will be properly formatted and may span multiple pages.</p>
+                    <img id="final-release-image" src="" alt="Generated Release Form" class="w-full h-auto border rounded-lg">
+                </div>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <button id="email-form" class="w-full text-center bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition shadow-md">
+                        Email Form
+                    </button>
+                    <a id="download-link" href="#" class="w-full text-center bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition shadow-md">
+                        Download as PDF
+                    </a>
+                    <button id="close-modal" class="w-full bg-slate-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-slate-600 transition shadow-md">Close Preview</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hidden canvases -->
+        <canvas id="photo-canvas" class="hidden"></canvas>
+        <canvas id="generated-release-canvas"></canvas>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const { jsPDF } = window.jspdf;
+
+            // --- State ---
+            let activeFormType = 'talent';
+            let talentSignatureProvided = false, materialsSignatureProvided = false, locationSignatureProvided = false;
+            let isPhotoTaken = false, isDrawing = false, lastX = 0, lastY = 0, videoStream = null;
+
+            // --- DOM Elements ---
+            const filmmakerNameEl = document.getElementById('filmmaker-name');
+            const projectNameEl = document.getElementById('project-name');
+            
+            const selectTalentBtn = document.getElementById('select-talent-form'), selectMaterialsBtn = document.getElementById('select-materials-form'), selectLocationBtn = document.getElementById('select-location-form');
+            const talentFormContainer = document.getElementById('talent-form-container'), materialsFormContainer = document.getElementById('materials-form-container'), locationFormContainer = document.getElementById('location-form-container');
+
+            const talentReleaseTextEl = document.getElementById('talent-release-text'), saveTalentTextBtn = document.getElementById('save-talent-text'), revertTalentTextBtn = document.getElementById('revert-talent-text');
+            const subjectNameEl = document.getElementById('subject-name'), subjectEmailEl = document.getElementById('subject-email'), subjectPhoneEl = document.getElementById('subject-phone');
+            const talentSigPad = document.getElementById('talent-signature-pad'), clearTalentSigBtn = document.getElementById('clear-talent-signature');
+
+            const materialsReleaseTextEl = document.getElementById('materials-release-text'), saveMaterialsTextBtn = document.getElementById('save-materials-text'), revertMaterialsTextBtn = document.getElementById('revert-materials-text');
+            const grantorNameEl = document.getElementById('grantor-name'), grantorCompanyEl = document.getElementById('grantor-company'), grantorEmailEl = document.getElementById('grantor-email'), grantorPhoneEl = document.getElementById('grantor-phone');
+            const materialsDescEl = document.getElementById('materials-description'), materialsSigPad = document.getElementById('materials-signature-pad'), clearMaterialsSigBtn = document.getElementById('clear-materials-signature');
+
+            const locationReleaseTextEl = document.getElementById('location-release-text'), saveLocationTextBtn = document.getElementById('save-location-text'), revertLocationTextBtn = document.getElementById('revert-location-text');
+            const ownerNameEl = document.getElementById('owner-name'), locationAddressEl = document.getElementById('location-address'), ownerEmailEl = document.getElementById('owner-email'), ownerPhoneEl = document.getElementById('owner-phone');
+            const locationTermsEl = document.getElementById('location-terms'), locationSigPad = document.getElementById('location-signature-pad'), clearLocationSigBtn = document.getElementById('clear-location-signature');
+            
+            const startCameraBtn = document.getElementById('start-camera'), takePhotoBtn = document.getElementById('take-photo');
+            const videoFeed = document.getElementById('video-feed'), cameraPlaceholder = document.getElementById('camera-placeholder');
+            const photoPreviewContainer = document.getElementById('photo-preview-container'), photoPreview = document.getElementById('photo-preview'), photoCanvas = document.getElementById('photo-canvas');
+            
+            const generateBtn = document.getElementById('generate-release'), resetFormBtn = document.getElementById('reset-form');
+            const finalCanvas = document.getElementById('generated-release-canvas');
+            const previewModal = document.getElementById('preview-modal'), modalTitleEl = document.getElementById('modal-title'), finalReleaseImage = document.getElementById('final-release-image');
+            const downloadLink = document.getElementById('download-link'), emailFormBtn = document.getElementById('email-form'), closeModalBtn = document.getElementById('close-modal');
+
+            // --- Default Text Constants ---
+            const DEFAULT_TALENT_TEXT = `I, the undersigned, hereby grant to [Filmmaker/Production Company], its agents, employees, licensees, and successors (collectively, the "Filmmaker") the absolute and irrevocable right and permission to record, use, publish, broadcast, and copyright my name, voice, likeness, and performance in the film project currently titled "[Film Title]" (the "Project"). This grant includes, without limitation, the right to use the footage in any and all media, now known or hereafter devised, throughout the universe, in perpetuity. I release and discharge the Filmmaker from any and all claims and demands arising out of or in connection with the use of the footage. I am of legal age and have the right to contract in my own name.`;
+            const DEFAULT_MATERIALS_TEXT = `I, the undersigned ("Grantor"), hereby grant to [Filmmaker/Production Company] ("Filmmaker") the non-exclusive, worldwide, and perpetual right to use, reproduce, and incorporate the materials described below ("the Materials") into the film project currently titled "[Film Title]" ("the Project").\n\nGrantor represents and warrants that they are the sole owner of the Materials and have the full right and authority to grant the permissions herein. Grantor releases Filmmaker from any and all claims related to the use of the Materials in the Project.`;
+            const DEFAULT_LOCATION_TEXT = `I, the undersigned ("Owner"), as the owner or authorized representative of the property located at the address specified below ("the Property"), hereby grant [Filmmaker/Production Company] ("Filmmaker") the right to enter and film on the Property for the project titled "[Film Title]" ("the Project").\n\nThis permission includes the right to photograph and record the Property, and to use these recordings in any and all media worldwide, in perpetuity. Filmmaker agrees to leave the Property in the condition it was found. Owner releases Filmmaker from any claims arising from the use of the Property's likeness, except for claims of gross negligence.`;
+
+            // --- Text Persistence Logic ---
+            function loadAndManageText(textAreaEl, saveBtn, revertBtn, storageKey, defaultText) {
+                textAreaEl.value = localStorage.getItem(storageKey) || defaultText;
+                saveBtn.addEventListener('click', () => {
+                    localStorage.setItem(storageKey, textAreaEl.value);
+                    const originalText = saveBtn.textContent;
+                    saveBtn.textContent = 'Saved!'; saveBtn.classList.add('bg-green-200');
+                    setTimeout(() => { saveBtn.textContent = originalText; saveBtn.classList.remove('bg-green-200'); }, 2000);
+                });
+                revertBtn.addEventListener('click', () => {
+                    // Removed confirm() as it's not supported in all environments.
+                    localStorage.removeItem(storageKey); 
+                    textAreaEl.value = defaultText;
+                });
+            }
+            loadAndManageText(talentReleaseTextEl, saveTalentTextBtn, revertTalentTextBtn, 'customTalentReleaseText', DEFAULT_TALENT_TEXT);
+            loadAndManageText(materialsReleaseTextEl, saveMaterialsTextBtn, revertMaterialsTextBtn, 'customMaterialsReleaseText', DEFAULT_MATERIALS_TEXT);
+            loadAndManageText(locationReleaseTextEl, saveLocationTextBtn, revertLocationTextBtn, 'customLocationReleaseText', DEFAULT_LOCATION_TEXT);
+
+            // --- Signature Pad Setup ---
+            function setupSignaturePad(canvas, onDrawCallback) {
+                const ctx = canvas.getContext('2d');
+                function resize() {
+                    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                    canvas.width = canvas.offsetWidth * ratio; canvas.height = canvas.offsetHeight * ratio;
+                    ctx.scale(ratio, ratio);
+                    ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                }
+                function getEventCoords(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    return e.touches && e.touches[0] ? [e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top] : [e.offsetX, e.offsetY];
+                }
+                function draw(e) {
+                    if (!isDrawing) return;
+                    const [x, y] = getEventCoords(e);
+                    ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); ctx.stroke();
+                    [lastX, lastY] = [x, y]; onDrawCallback();
+                }
+                canvas.addEventListener('mousedown', (e) => { isDrawing = true; [lastX, lastY] = getEventCoords(e); });
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('mouseup', () => isDrawing = false);
+                canvas.addEventListener('mouseout', () => isDrawing = false);
+                canvas.addEventListener('touchstart', (e) => { isDrawing = true; [lastX, lastY] = getEventCoords(e); });
+                canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+                canvas.addEventListener('touchend', () => isDrawing = false);
+                window.addEventListener('resize', resize); resize();
+            }
+            setupSignaturePad(talentSigPad, () => { talentSignatureProvided = true; updateGenerateButtonState(); });
+            setupSignaturePad(materialsSigPad, () => { materialsSignatureProvided = true; updateGenerateButtonState(); });
+            setupSignaturePad(locationSigPad, () => { locationSignatureProvided = true; updateGenerateButtonState(); });
+
+            clearTalentSigBtn.addEventListener('click', () => { talentSigPad.getContext('2d').clearRect(0, 0, talentSigPad.width, talentSigPad.height); talentSignatureProvided = false; updateGenerateButtonState(); });
+            clearMaterialsSigBtn.addEventListener('click', () => { materialsSigPad.getContext('2d').clearRect(0, 0, materialsSigPad.width, materialsSigPad.height); materialsSignatureProvided = false; updateGenerateButtonState(); });
+            clearLocationSigBtn.addEventListener('click', () => { locationSigPad.getContext('2d').clearRect(0, 0, locationSigPad.width, locationSigPad.height); locationSignatureProvided = false; updateGenerateButtonState(); });
+
+            // --- Form Toggling ---
+            function toggleForm(type) {
+                activeFormType = type;
+                talentFormContainer.classList.toggle('hidden', type !== 'talent');
+                materialsFormContainer.classList.toggle('hidden', type !== 'materials');
+                locationFormContainer.classList.toggle('hidden', type !== 'location');
+                selectTalentBtn.classList.toggle('active', type === 'talent'); selectTalentBtn.classList.toggle('inactive', type !== 'talent');
+                selectMaterialsBtn.classList.toggle('active', type === 'materials'); selectMaterialsBtn.classList.toggle('inactive', type !== 'materials');
+                selectLocationBtn.classList.toggle('active', type === 'location'); selectLocationBtn.classList.toggle('inactive', type !== 'location');
+                updateGenerateButtonState();
+            }
+            selectTalentBtn.addEventListener('click', () => toggleForm('talent'));
+            selectMaterialsBtn.addEventListener('click', () => toggleForm('materials'));
+            selectLocationBtn.addEventListener('click', () => toggleForm('location'));
+
+            // --- Form Logic ---
+            startCameraBtn.addEventListener('click', async () => {
+                if (videoStream) videoStream.getTracks().forEach(track => track.stop());
+                try {
+                    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                    videoFeed.srcObject = videoStream; takePhotoBtn.disabled = false;
+                    cameraPlaceholder.style.display = 'none'; videoFeed.style.display = 'block';
+                } catch (err) { console.error("Camera Error:", err); alert("Could not access camera."); }
+            });
+
+            takePhotoBtn.addEventListener('click', () => {
+                if (!videoStream) return;
+                const ctx = photoCanvas.getContext('2d');
+                photoCanvas.width = videoFeed.videoWidth; photoCanvas.height = videoFeed.videoHeight;
+                ctx.drawImage(videoFeed, 0, 0, photoCanvas.width, photoCanvas.height);
+                photoPreview.src = photoCanvas.toDataURL('image/jpeg');
+                photoPreviewContainer.classList.remove('hidden'); isPhotoTaken = true; updateGenerateButtonState();
+                videoStream.getTracks().forEach(track => track.stop());
+                videoFeed.style.display = 'none'; cameraPlaceholder.textContent = 'Photo captured!';
+                cameraPlaceholder.style.display = 'block'; takePhotoBtn.disabled = true;
+            });
+
+            function resetForm() {
+                if (activeFormType === 'talent') {
+                    subjectNameEl.value = ''; subjectEmailEl.value = ''; subjectPhoneEl.value = '';
+                    talentSigPad.getContext('2d').clearRect(0, 0, talentSigPad.width, talentSigPad.height); talentSignatureProvided = false;
+                    isPhotoTaken = false; photoPreview.src = ''; photoPreviewContainer.classList.add('hidden');
+                    if (videoStream) videoStream.getTracks().forEach(track => track.stop()); videoStream = null; videoFeed.srcObject = null;
+                    cameraPlaceholder.textContent = 'Camera feed will appear here'; cameraPlaceholder.style.display = 'block'; videoFeed.style.display = 'none';
+                    takePhotoBtn.disabled = true;
+                } else if (activeFormType === 'materials') {
+                    grantorNameEl.value = ''; grantorCompanyEl.value = ''; grantorEmailEl.value = ''; grantorPhoneEl.value = ''; materialsDescEl.value = '';
+                    materialsSigPad.getContext('2d').clearRect(0, 0, materialsSigPad.width, materialsSigPad.height); materialsSignatureProvided = false;
+                } else if (activeFormType === 'location') {
+                    ownerNameEl.value = ''; locationAddressEl.value = ''; ownerEmailEl.value = ''; ownerPhoneEl.value = ''; locationTermsEl.value = '';
+                    locationSigPad.getContext('2d').clearRect(0, 0, locationSigPad.width, locationSigPad.height); locationSignatureProvided = false;
+                }
+                updateGenerateButtonState();
+            }
+            resetFormBtn.addEventListener('click', resetForm);
+
+            function updateGenerateButtonState() {
+                let isValid = false;
+                if (activeFormType === 'talent') isValid = talentSignatureProvided && isPhotoTaken && subjectNameEl.value.trim() !== '';
+                else if (activeFormType === 'materials') isValid = materialsSignatureProvided && grantorNameEl.value.trim() !== '' && materialsDescEl.value.trim() !== '';
+                else if (activeFormType === 'location') isValid = locationSignatureProvided && ownerNameEl.value.trim() !== '' && locationAddressEl.value.trim() !== '';
+                generateBtn.disabled = !isValid;
+                generateBtn.classList.toggle('animate-pulse', isValid);
+            }
+            [subjectNameEl, grantorNameEl, materialsDescEl, ownerNameEl, locationAddressEl].forEach(el => el.addEventListener('input', updateGenerateButtonState));
+            
+            // --- Generation Logic ---
+            generateBtn.addEventListener('click', async () => {
+                const canvas = document.getElementById('generated-release-canvas');
+                canvas.width = 1240; canvas.height = 1754; // Use a fixed size for the preview canvas
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const doc = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
+                const addContentToDoc = getPdfContentGenerator();
+                await addContentToDoc(doc, true, ctx); // Pass canvas context to render preview
+                finalReleaseImage.src = canvas.toDataURL('image/png');
+                previewModal.classList.remove('hidden');
+            });
+
+            async function buildPdf(isForPreviewCanvas=false, canvasCtx=null) {
+                const doc = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
+                const addContentToDoc = getPdfContentGenerator();
+                await addContentToDoc(doc, isForPreviewCanvas, canvasCtx);
+                return doc;
+            }
+
+            function getPdfContentGenerator() {
+                if (activeFormType === 'talent') return buildTalentPdf;
+                if (activeFormType === 'materials') return buildMaterialsPdf;
+                if (activeFormType === 'location') return buildLocationPdf;
+            }
+            
+            // --- PDF Building Functions ---
+            const MARGIN = 40;
+            const FONT_SIZES = { title: 22, heading: 14, body: 10, small: 8 };
+
+            function checkY(y, requiredSpace, doc, ctx) {
+                if (ctx) return y; // Don't page break on canvas preview
+                if (y + requiredSpace > doc.internal.pageSize.height - MARGIN) {
+                    doc.addPage();
+                    return MARGIN;
+                }
+                return y;
+            }
+
+            async function buildTalentPdf(doc, isForPreviewCanvas, ctx) {
+                modalTitleEl.textContent = 'Generated Talent Release';
+                const fName = filmmakerNameEl.value || 'N/A', pName = projectNameEl.value || 'N/A';
+                let y = MARGIN;
+                const renderer = isForPreviewCanvas ? new CanvasRenderer(ctx, 1240/doc.internal.pageSize.width) : new PdfRenderer(doc);
+
+                renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.title).text('Talent Release Form', doc.internal.pageSize.width / 2, y, { align: 'center' });
+                y += 40;
+                renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                renderer.text(`Filmmaker/Production Co: ${fName}`, MARGIN, y); y += 15;
+                renderer.text(`Film Title: ${pName}`, MARGIN, y); y += 30;
+
+                const text = talentReleaseTextEl.value.replace(/\[Filmmaker\/Production Company\]/g, fName).replace(/\[Film Title\]/g, pName);
+                const splitText = doc.splitTextToSize(text, doc.internal.pageSize.width - MARGIN * 2);
+                for (const line of splitText) {
+                    y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas);
+                    renderer.text(line, MARGIN, y);
+                    y += FONT_SIZES.body * 1.2;
+                }
+                y += 20;
+                
+                const sigWidth = 150, sigHeight = (sigWidth / talentSigPad.offsetWidth) * talentSigPad.offsetHeight;
+                const photoHeight = 112.5, photoWidth = 150;
+                const blockHeight = Math.max(sigHeight, photoHeight) + 80;
+                y = checkY(y, blockHeight, doc, isForPreviewCanvas);
+                
+                renderer.addImage(talentSigPad.toDataURL('image/png'), 'PNG', MARGIN, y, sigWidth, sigHeight);
+                renderer.addImage(photoCanvas.toDataURL('image/jpeg'), 'JPEG', doc.internal.pageSize.width - MARGIN - photoWidth, y, photoWidth, photoHeight);
+                
+                let infoY = y + sigHeight + 10;
+                renderer.setDrawColor(150).line(MARGIN, infoY, MARGIN + sigWidth, infoY);
+                infoY += 12;
+                renderer.setFontSize(FONT_SIZES.small).text('Signature', MARGIN, infoY);
+                infoY += 20;
+                renderer.setFontSize(FONT_SIZES.body).text(subjectNameEl.value, MARGIN, infoY);
+                renderer.line(MARGIN, infoY + 2, MARGIN + sigWidth, infoY + 2);
+                infoY += 12;
+                renderer.setFontSize(FONT_SIZES.small).text('Printed Name', MARGIN, infoY);
+                
+                renderer.setFontSize(FONT_SIZES.body).text(new Date().toLocaleDateString(), MARGIN + sigWidth + 20, y + sigHeight + 22);
+                renderer.line(MARGIN + sigWidth + 20, y + sigHeight + 24, doc.internal.pageSize.width - MARGIN - photoWidth - 10, y + sigHeight + 24);
+                renderer.setFontSize(FONT_SIZES.small).text('Date', MARGIN + sigWidth + 20, y + sigHeight + 36);
+
+                infoY += 20;
+                renderer.setFontSize(FONT_SIZES.body).text(`Email: ${subjectEmailEl.value || 'N/A'}`, MARGIN, infoY); infoY += 15;
+                renderer.text(`Phone: ${subjectPhoneEl.value || 'N/A'}`, MARGIN, infoY);
+            }
+            
+            async function buildMaterialsPdf(doc, isForPreviewCanvas, ctx) {
+                 modalTitleEl.textContent = 'Generated Materials Release';
+                 const fName = filmmakerNameEl.value || 'N/A', pName = projectNameEl.value || 'N/A';
+                 let y = MARGIN;
+                 const renderer = isForPreviewCanvas ? new CanvasRenderer(ctx, 1240/doc.internal.pageSize.width) : new PdfRenderer(doc);
+
+                 renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.title).text('Materials Release Form', doc.internal.pageSize.width / 2, y, { align: 'center' });
+                 y += 40;
+                 renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                 renderer.text(`Filmmaker/Production Co: ${fName}`, MARGIN, y); y += 15;
+                 renderer.text(`Film Title: ${pName}`, MARGIN, y); y += 30;
+
+                 const text = materialsReleaseTextEl.value.replace(/\[Filmmaker\/Production Company\]/g, fName).replace(/\[Film Title\]/g, pName);
+                 let splitText = doc.splitTextToSize(text, doc.internal.pageSize.width - MARGIN * 2);
+                 for (const line of splitText) { y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas); renderer.text(line, MARGIN, y); y += FONT_SIZES.body * 1.2; }
+                 y += 20;
+                 y = checkY(y, 20, doc, isForPreviewCanvas);
+                 renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.heading).text('Description of Materials:', MARGIN, y); y += 20;
+                 renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                 splitText = doc.splitTextToSize(materialsDescEl.value, doc.internal.pageSize.width - MARGIN * 2);
+                 for (const line of splitText) { y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas); renderer.text(line, MARGIN, y); y += FONT_SIZES.body * 1.2; }
+                 y += 30;
+
+                 const sigWidth = 200, sigHeight = (sigWidth / materialsSigPad.offsetWidth) * materialsSigPad.offsetHeight;
+                 const blockHeight = sigHeight + (grantorCompanyEl.value ? 120 : 80);
+                 y = checkY(y, blockHeight, doc, isForPreviewCanvas);
+                 renderer.addImage(materialsSigPad.toDataURL('image/png'), 'PNG', MARGIN, y, sigWidth, sigHeight);
+                 
+                 let infoY = y + sigHeight + 10;
+                 renderer.setDrawColor(150).line(MARGIN, infoY, MARGIN + sigWidth, infoY); infoY += 12;
+                 renderer.setFontSize(FONT_SIZES.small).text('Signature', MARGIN, infoY); infoY += 20;
+                 renderer.setFontSize(FONT_SIZES.body).text(grantorNameEl.value, MARGIN, infoY);
+                 renderer.line(MARGIN, infoY + 2, MARGIN + sigWidth, infoY + 2); infoY += 12;
+                 renderer.setFontSize(FONT_SIZES.small).text("Grantor's Printed Name", MARGIN, infoY);
+                 
+                 if (grantorCompanyEl.value) {
+                     infoY += 20;
+                     renderer.setFontSize(FONT_SIZES.body).text(grantorCompanyEl.value, MARGIN, infoY);
+                     renderer.line(MARGIN, infoY + 2, MARGIN + sigWidth, infoY + 2); infoY += 12;
+                     renderer.setFontSize(FONT_SIZES.small).text("Organization/Company", MARGIN, infoY);
+                 }
+
+                 renderer.setFontSize(FONT_SIZES.body).text(new Date().toLocaleDateString(), MARGIN + sigWidth + 20, y + sigHeight + 22);
+                 renderer.line(MARGIN + sigWidth + 20, y + sigHeight + 24, doc.internal.pageSize.width - MARGIN, y + sigHeight + 24);
+                 renderer.setFontSize(FONT_SIZES.small).text('Date', MARGIN + sigWidth + 20, y + sigHeight + 36);
+
+                 infoY += 20;
+                 renderer.setFontSize(FONT_SIZES.body).text(`Email: ${grantorEmailEl.value || 'N/A'}`, MARGIN, infoY); infoY += 15;
+                 renderer.text(`Phone: ${grantorPhoneEl.value || 'N/A'}`, MARGIN, infoY);
+            }
+            
+             async function buildLocationPdf(doc, isForPreviewCanvas, ctx) {
+                 modalTitleEl.textContent = 'Generated Location Release';
+                 const fName = filmmakerNameEl.value || 'N/A', pName = projectNameEl.value || 'N/A';
+                 let y = MARGIN;
+                 const renderer = isForPreviewCanvas ? new CanvasRenderer(ctx, 1240/doc.internal.pageSize.width) : new PdfRenderer(doc);
+
+                 renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.title).text('Location Release Form', doc.internal.pageSize.width / 2, y, { align: 'center' });
+                 y += 40;
+                 renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                 renderer.text(`Filmmaker/Production Co: ${fName}`, MARGIN, y); y += 15;
+                 renderer.text(`Film Title: ${pName}`, MARGIN, y); y += 30;
+
+                 let splitText = doc.splitTextToSize(locationReleaseTextEl.value.replace(/\[Filmmaker\/Production Company\]/g, fName).replace(/\[Film Title\]/g, pName), doc.internal.pageSize.width - MARGIN * 2);
+                 for (const line of splitText) { y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas); renderer.text(line, MARGIN, y); y += FONT_SIZES.body * 1.2; }
+                 y += 20;
+
+                 y = checkY(y, 20, doc, isForPreviewCanvas); renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.heading).text('Location Address:', MARGIN, y); y += 20;
+                 renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                 splitText = doc.splitTextToSize(locationAddressEl.value, doc.internal.pageSize.width - MARGIN * 2);
+                 for (const line of splitText) { y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas); renderer.text(line, MARGIN, y); y += FONT_SIZES.body * 1.2; }
+                 y += 20;
+
+                 if (locationTermsEl.value.trim()) {
+                     y = checkY(y, 20, doc, isForPreviewCanvas); renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.heading).text('Specific Terms or Restrictions:', MARGIN, y); y += 20;
+                     renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                     splitText = doc.splitTextToSize(locationTermsEl.value, doc.internal.pageSize.width - MARGIN * 2);
+                     for (const line of splitText) { y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas); renderer.text(line, MARGIN, y); y += FONT_SIZES.body * 1.2; }
+                     y += 30;
+                 }
+
+                 const sigWidth = 200, sigHeight = (sigWidth / locationSigPad.offsetWidth) * locationSigPad.offsetHeight;
+                 const blockHeight = sigHeight + 100;
+                 y = checkY(y, blockHeight, doc, isForPreviewCanvas);
+                 renderer.addImage(locationSigPad.toDataURL('image/png'), 'PNG', MARGIN, y, sigWidth, sigHeight);
+
+                 let infoY = y + sigHeight + 10;
+                 renderer.setDrawColor(150).line(MARGIN, infoY, MARGIN + sigWidth, infoY); infoY += 12;
+                 renderer.setFontSize(FONT_SIZES.small).text('Signature', MARGIN, infoY); infoY += 20;
+                 renderer.setFontSize(FONT_SIZES.body).text(ownerNameEl.value, MARGIN, infoY);
+                 renderer.line(MARGIN, infoY + 2, MARGIN + sigWidth, infoY + 2); infoY += 12;
+                 renderer.setFontSize(FONT_SIZES.small).text("Owner/Rep. Printed Name", MARGIN, infoY);
+                 
+                 renderer.setFontSize(FONT_SIZES.body).text(new Date().toLocaleDateString(), MARGIN + sigWidth + 20, y + sigHeight + 22);
+                 renderer.line(MARGIN + sigWidth + 20, y + sigHeight + 24, doc.internal.pageSize.width - MARGIN, y + sigHeight + 24);
+                 renderer.setFontSize(FONT_SIZES.small).text('Date', MARGIN + sigWidth + 20, y + sigHeight + 36);
+
+                 infoY += 20;
+                 renderer.setFontSize(FONT_SIZES.body).text(`Email: ${ownerEmailEl.value || 'N/A'}`, MARGIN, infoY); infoY += 15;
+                 renderer.text(`Phone: ${ownerPhoneEl.value || 'N/A'}`, MARGIN, infoY);
+            }
+
+             class PdfRenderer { constructor(doc) { this.doc = doc; } setFont(fam, style) { this.doc.setFont(fam, style); return this; } setFontSize(size) { this.doc.setFontSize(size); return this; } text(text, x, y, options) { this.doc.text(text, x, y, options); return this; } setDrawColor(color) { this.doc.setDrawColor(color); return this; } line(x1, y1, x2, y2) { this.doc.line(x1, y1, x2, y2); return this; } addImage(data, format, x, y, w, h) { this.doc.addImage(data, format, x, y, w, h); return this; } }
+             class CanvasRenderer { constructor(ctx, scale) { this.ctx = ctx; this.scale = scale; this.font = '10pt helvetica';} setFont(fam, style) { this.font = `${style==='bold' ? 'bold ': ''}${this.fontSize || 10}pt ${fam}`; return this; } setFontSize(size) { this.fontSize = size; this.font = this.font.replace(/\d+pt/, `${size}pt`); return this; } text(text, x, y, options) { this.ctx.font = this.font; this.ctx.textAlign = options?.align || 'left'; this.ctx.fillStyle = '#000000'; this.ctx.fillText(text, x * this.scale, y * this.scale); return this; } setDrawColor(color) { this.ctx.strokeStyle = '#969696'; return this; } line(x1, y1, x2, y2) { this.ctx.beginPath(); this.ctx.moveTo(x1*this.scale, y1*this.scale); this.ctx.lineTo(x2*this.scale, y2*this.scale); this.ctx.stroke(); return this; } addImage(data, format, x, y, w, h) { const img = new Image(); img.src = data; this.ctx.drawImage(img, x*this.scale, y*this.scale, w*this.scale, h*this.scale); return this; }}
+
+
+            // --- Event Listeners for Modal Buttons ---
+            downloadLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const doc = await buildPdf();
+                doc.save(getFilename());
+            });
+
+            emailFormBtn.addEventListener('click', async () => {
+                const doc = await buildPdf();
+                doc.save(getFilename());
+
+                let recipientEmail = '';
+                if (activeFormType === 'talent') recipientEmail = subjectEmailEl.value;
+                else if (activeFormType === 'materials') recipientEmail = grantorEmailEl.value;
+                else if (activeFormType === 'location') recipientEmail = ownerEmailEl.value;
+
+                if (!recipientEmail) {
+                    alert('Please enter an email address for the recipient first.');
+                    return;
+                }
+
+                const subject = `Signed Release Form for ${projectNameEl.value || 'the film'}`;
+                const body = `Hello,\n\nThank you for signing the release form for the film "${projectNameEl.value || '(Not specified)'}".\n\nPlease find the completed PDF attached to this email for your records.\n\n(Note: You may need to manually attach the file you just downloaded if your email client does not do it automatically.)\n\nThank you,\n${filmmakerNameEl.value || 'The Filmmaker'}`;
+                
+                const mailtoLink = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+                const originalText = emailFormBtn.textContent;
+                emailFormBtn.textContent = 'PDF downloaded. Opening email...';
+                setTimeout(() => { window.location.href = mailtoLink; emailFormBtn.textContent = originalText; }, 2500);
+            });
+            
+            function getFilename() {
+                let name;
+                if (activeFormType === 'talent') name = subjectNameEl.value;
+                else if (activeFormType === 'materials') name = grantorNameEl.value;
+                else name = ownerNameEl.value;
+                const safeFilename = (name || 'release').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                const fileDate = new Date().toISOString().split('T')[0];
+                return `release_${activeFormType}_${safeFilename}_${fileDate}.pdf`;
+            }
+
+            closeModalBtn.addEventListener('click', () => previewModal.classList.add('hidden'));
+            toggleForm('talent'); // Initialize
+        });
+    </script>
+</body>
+</html>
