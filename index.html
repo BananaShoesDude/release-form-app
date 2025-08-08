@@ -277,7 +277,6 @@
                     setTimeout(() => { saveBtn.textContent = originalText; saveBtn.classList.remove('bg-green-200'); }, 2000);
                 });
                 revertBtn.addEventListener('click', () => {
-                    // Removed confirm() as it's not supported in all environments.
                     localStorage.removeItem(storageKey); 
                     textAreaEl.value = defaultText;
                 });
@@ -341,10 +340,11 @@
             startCameraBtn.addEventListener('click', async () => {
                 if (videoStream) videoStream.getTracks().forEach(track => track.stop());
                 try {
-                    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                    // Prefer the rear camera ('environment')
+                    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
                     videoFeed.srcObject = videoStream; takePhotoBtn.disabled = false;
                     cameraPlaceholder.style.display = 'none'; videoFeed.style.display = 'block';
-                } catch (err) { console.error("Camera Error:", err); alert("Could not access camera."); }
+                } catch (err) { console.error("Camera Error:", err); alert("Could not access camera. Please ensure permissions are enabled."); }
             });
 
             takePhotoBtn.addEventListener('click', () => {
