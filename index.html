@@ -56,8 +56,9 @@
         <!-- Form Type Toggle -->
         <div class="space-y-4">
             <h2 class="text-xl font-semibold border-b pb-2">Select Form Type</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                  <button id="select-talent-form" class="form-toggle-btn p-3 rounded-lg font-semibold transition-all active">Talent Release</button>
+                 <button id="select-talent-minor-form" class="form-toggle-btn p-3 rounded-lg font-semibold transition-all inactive">Talent Release (Minor)</button>
                  <button id="select-materials-form" class="form-toggle-btn p-3 rounded-lg font-semibold transition-all inactive">Materials Release</button>
                  <button id="select-location-form" class="form-toggle-btn p-3 rounded-lg font-semibold transition-all inactive">Location Release</button>
             </div>
@@ -83,10 +84,10 @@
                 </div>
             </div>
             <div class="space-y-4 mt-8">
-                <h2 class="text-xl font-semibold border-b pb-2">Step 2: Your Information</h2>
+                <h2 class="text-xl font-semibold border-b pb-2">Step 2: Your Information (required)</h2>
                 <div class="bg-slate-50 p-4 rounded-lg space-y-4">
                     <div>
-                        <label for="subject-name" class="block text-sm font-medium text-slate-600 mb-1">Full Name (Print)</label>
+                        <label for="subject-name" class="block text-sm font-medium text-slate-600 mb-1">Full Name</label>
                         <input type="text" id="subject-name" placeholder="Enter full name here" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition">
                     </div>
                     <div class="grid md:grid-cols-2 gap-4">
@@ -100,8 +101,8 @@
                     </div>
                 </div>
             </div>
-            <div class="space-y-4 mt-8">
-                <h2 class="text-xl font-semibold border-b pb-2">Step 3: Verification Photo</h2>
+            <div class="space-y-4 mt-8" id="photo-section">
+                <h2 id="photo-step-heading" class="text-xl font-semibold border-b pb-2">Step 3: Verification Photo</h2>
                 <div class="flex flex-col items-center gap-4">
                     <div class="relative w-full max-w-md aspect-video bg-slate-200 rounded-lg overflow-hidden flex items-center justify-center">
                         <video id="video-feed" playsinline autoplay class="w-full h-full object-cover"></video>
@@ -109,6 +110,40 @@
                     </div>
                     <div class="flex gap-4 w-full max-w-md"><button id="start-camera" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition shadow-md">Start Camera</button><button id="take-photo" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition shadow-md" disabled>Take Photo</button></div>
                     <div id="photo-preview-container" class="hidden w-32 h-24 rounded-lg overflow-hidden border-2 border-green-500"><img id="photo-preview" src="" alt="Photo Preview" class="w-full h-full object-cover"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TALENT RELEASE MINOR FORM CONTAINER -->
+        <div id="talent-minor-form-container" class="hidden">
+            <div>
+                <label for="talent-minor-release-text" class="block text-sm font-medium text-slate-600 mb-1">Talent Release (Minor) Form Text (Editable)</label>
+                <textarea id="talent-minor-release-text" rows="8" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition text-sm"></textarea>
+                <div class="flex gap-2 mt-2">
+                    <button id="save-talent-minor-text" class="text-xs bg-blue-100 text-blue-700 font-semibold py-1 px-3 rounded-md hover:bg-blue-200 transition">Save Custom Text</button>
+                    <button id="revert-talent-minor-text" class="text-xs bg-slate-100 text-slate-700 font-semibold py-1 px-3 rounded-md hover:bg-slate-200 transition">Revert to Default</button>
+                </div>
+            </div>
+            <div class="space-y-4 mt-8">
+                <h2 class="text-xl font-semibold border-b pb-2">Step 2: Information (required)</h2>
+                <div class="bg-slate-50 p-4 rounded-lg space-y-4">
+                    <div>
+                        <label for="minor-name" class="block text-sm font-medium text-slate-600 mb-1">Full Name (Minor)</label>
+                        <input type="text" id="minor-name" placeholder="Enter minor's full name here" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                    <div>
+                        <label for="parent-name" class="block text-sm font-medium text-slate-600 mb-1">Full Name (Parent/Guardian)</label>
+                        <input type="text" id="parent-name" placeholder="Enter parent/guardian's full name here" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div><label for="parent-email" class="block text-sm font-medium text-slate-600 mb-1">Email Address (Parent/Guardian)</label><input type="email" id="parent-email" placeholder="email@example.com" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition"></div>
+                        <div><label for="parent-phone" class="block text-sm font-medium text-slate-600 mb-1">Phone Number (Parent/Guardian)</label><input type="tel" id="parent-phone" placeholder="(555) 123-4567" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition"></div>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-600 mb-2">Parent/Guardian: Sign in the box below</p>
+                        <canvas id="talent-minor-signature-pad" class="signature-pad w-full h-24 bg-white rounded-lg cursor-crosshair"></canvas>
+                        <button id="clear-talent-minor-signature" class="mt-2 text-sm text-blue-600 hover:text-blue-800 transition">Clear Signature</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -127,7 +162,7 @@
                 <h2 class="text-xl font-semibold border-b pb-2">Step 2: Grantor's Information</h2>
                  <div class="bg-slate-50 p-4 rounded-lg space-y-4">
                     <div>
-                        <label for="grantor-name" class="block text-sm font-medium text-slate-600 mb-1">Grantor's Full Name (Print)</label>
+                        <label for="grantor-name" class="block text-sm font-medium text-slate-600 mb-1">Grantor's Full Name</label>
                         <input type="text" id="grantor-name" placeholder="Enter full name here" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition">
                     </div>
                      <div>
@@ -165,7 +200,7 @@
                 <h2 class="text-xl font-semibold border-b pb-2">Step 2: Location & Owner Information</h2>
                  <div class="bg-slate-50 p-4 rounded-lg space-y-4">
                     <div>
-                        <label for="owner-name" class="block text-sm font-medium text-slate-600 mb-1">Property Owner / Representative Name (Print)</label>
+                        <label for="owner-name" class="block text-sm font-medium text-slate-600 mb-1">Property Owner / Representative Name</label>
                         <input type="text" id="owner-name" placeholder="Enter full name here" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition">
                     </div>
                     <div>
@@ -209,9 +244,6 @@
                     <img id="final-release-image" src="" alt="Generated Release Form" class="w-full h-auto border rounded-lg">
                 </div>
                 <div class="flex flex-col md:flex-row gap-4">
-                    <button id="email-form" class="w-full text-center bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition shadow-md">
-                        Email Form
-                    </button>
                     <a id="download-link" href="#" class="w-full text-center bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition shadow-md">
                         Download as PDF
                     </a>
@@ -231,19 +263,23 @@
 
             // --- State ---
             let activeFormType = 'talent';
-            let talentSignatureProvided = false, materialsSignatureProvided = false, locationSignatureProvided = false;
-            let isPhotoTaken = false, isDrawing = false, lastX = 0, lastY = 0, videoStream = null;
+            let talentSignatureProvided = false, talentMinorSignatureProvided = false, materialsSignatureProvided = false, locationSignatureProvided = false;
+            let isPhotoTaken = false, videoStream = null;
 
             // --- DOM Elements ---
             const filmmakerNameEl = document.getElementById('filmmaker-name');
             const projectNameEl = document.getElementById('project-name');
             
-            const selectTalentBtn = document.getElementById('select-talent-form'), selectMaterialsBtn = document.getElementById('select-materials-form'), selectLocationBtn = document.getElementById('select-location-form');
-            const talentFormContainer = document.getElementById('talent-form-container'), materialsFormContainer = document.getElementById('materials-form-container'), locationFormContainer = document.getElementById('location-form-container');
+            const selectTalentBtn = document.getElementById('select-talent-form'), selectTalentMinorBtn = document.getElementById('select-talent-minor-form'), selectMaterialsBtn = document.getElementById('select-materials-form'), selectLocationBtn = document.getElementById('select-location-form');
+            const talentFormContainer = document.getElementById('talent-form-container'), talentMinorFormContainer = document.getElementById('talent-minor-form-container'), materialsFormContainer = document.getElementById('materials-form-container'), locationFormContainer = document.getElementById('location-form-container');
 
             const talentReleaseTextEl = document.getElementById('talent-release-text'), saveTalentTextBtn = document.getElementById('save-talent-text'), revertTalentTextBtn = document.getElementById('revert-talent-text');
             const subjectNameEl = document.getElementById('subject-name'), subjectEmailEl = document.getElementById('subject-email'), subjectPhoneEl = document.getElementById('subject-phone');
             const talentSigPad = document.getElementById('talent-signature-pad'), clearTalentSigBtn = document.getElementById('clear-talent-signature');
+
+            const talentMinorReleaseTextEl = document.getElementById('talent-minor-release-text'), saveTalentMinorTextBtn = document.getElementById('save-talent-minor-text'), revertTalentMinorTextBtn = document.getElementById('revert-talent-minor-text');
+            const minorNameEl = document.getElementById('minor-name'), parentNameEl = document.getElementById('parent-name'), parentEmailEl = document.getElementById('parent-email'), parentPhoneEl = document.getElementById('parent-phone');
+            const talentMinorSigPad = document.getElementById('talent-minor-signature-pad'), clearTalentMinorSigBtn = document.getElementById('clear-talent-minor-signature');
 
             const materialsReleaseTextEl = document.getElementById('materials-release-text'), saveMaterialsTextBtn = document.getElementById('save-materials-text'), revertMaterialsTextBtn = document.getElementById('revert-materials-text');
             const grantorNameEl = document.getElementById('grantor-name'), grantorCompanyEl = document.getElementById('grantor-company'), grantorEmailEl = document.getElementById('grantor-email'), grantorPhoneEl = document.getElementById('grantor-phone');
@@ -256,14 +292,16 @@
             const startCameraBtn = document.getElementById('start-camera'), takePhotoBtn = document.getElementById('take-photo');
             const videoFeed = document.getElementById('video-feed'), cameraPlaceholder = document.getElementById('camera-placeholder');
             const photoPreviewContainer = document.getElementById('photo-preview-container'), photoPreview = document.getElementById('photo-preview'), photoCanvas = document.getElementById('photo-canvas');
+            const photoStepHeading = document.getElementById('photo-step-heading');
             
             const generateBtn = document.getElementById('generate-release'), resetFormBtn = document.getElementById('reset-form');
             const finalCanvas = document.getElementById('generated-release-canvas');
             const previewModal = document.getElementById('preview-modal'), modalTitleEl = document.getElementById('modal-title'), finalReleaseImage = document.getElementById('final-release-image');
-            const downloadLink = document.getElementById('download-link'), emailFormBtn = document.getElementById('email-form'), closeModalBtn = document.getElementById('close-modal');
+            const downloadLink = document.getElementById('download-link'), closeModalBtn = document.getElementById('close-modal');
 
             // --- Default Text Constants ---
             const DEFAULT_TALENT_TEXT = `I, the undersigned, hereby grant to [Filmmaker/Production Company], its agents, employees, licensees, and successors (collectively, the "Filmmaker") the absolute and irrevocable right and permission to record, use, publish, broadcast, and copyright my name, voice, likeness, and performance in the film project currently titled "[Film Title]" (the "Project"). This grant includes, without limitation, the right to use the footage in any and all media, now known or hereafter devised, throughout the universe, in perpetuity. I release and discharge the Filmmaker from any and all claims and demands arising out of or in connection with the use of the footage. I am of legal age and have the right to contract in my own name.`;
+            const DEFAULT_TALENT_MINOR_TEXT = `I, the undersigned, represent and warrant that I am the parent and/or legal guardian of the minor named below (the "Minor") and have the full right and authority to enter into this agreement on the Minor's behalf.\n\nOn behalf of myself and the Minor, I hereby grant to the Filmmaker, its agents, employees, licensees, and successors, the absolute and irrevocable right and permission to record, use, publish, broadcast, and copyright the Minor's name, voice, likeness, and performance in the Project. This grant includes, without limitation, the right to use the footage containing the Minor's performance in any and all media, now known or hereafter devised, throughout the universe, in perpetuity.\n\nOn behalf of myself and the Minor, I release and discharge the Filmmaker from any and all claims, liabilities, and demands arising out of or in connection with the use of the footage, including but not limited to any claims for invasion of privacy, defamation, or right of publicity. I affirm that I am of legal age and have the authority to execute this release.`;
             const DEFAULT_MATERIALS_TEXT = `I, the undersigned ("Grantor"), hereby grant to [Filmmaker/Production Company] ("Filmmaker") the non-exclusive, worldwide, and perpetual right to use, reproduce, and incorporate the materials described below ("the Materials") into the film project currently titled "[Film Title]" ("the Project").\n\nGrantor represents and warrants that they are the sole owner of the Materials and have the full right and authority to grant the permissions herein. Grantor releases Filmmaker from any and all claims related to the use of the Materials in the Project.`;
             const DEFAULT_LOCATION_TEXT = `I, the undersigned ("Owner"), as the owner or authorized representative of the property located at the address specified below ("the Property"), hereby grant [Filmmaker/Production Company] ("Filmmaker") the right to enter and film on the Property for the project titled "[Film Title]" ("the Project").\n\nThis permission includes the right to photograph and record the Property, and to use these recordings in any and all media worldwide, in perpetuity. Filmmaker agrees to leave the Property in the condition it was found. Owner releases Filmmaker from any claims arising from the use of the Property's likeness, except for claims of gross negligence.`;
 
@@ -282,20 +320,23 @@
                 });
             }
             loadAndManageText(talentReleaseTextEl, saveTalentTextBtn, revertTalentTextBtn, 'customTalentReleaseText', DEFAULT_TALENT_TEXT);
+            loadAndManageText(talentMinorReleaseTextEl, saveTalentMinorTextBtn, revertTalentMinorTextBtn, 'customTalentMinorReleaseText', DEFAULT_TALENT_MINOR_TEXT);
             loadAndManageText(materialsReleaseTextEl, saveMaterialsTextBtn, revertMaterialsTextBtn, 'customMaterialsReleaseText', DEFAULT_MATERIALS_TEXT);
             loadAndManageText(locationReleaseTextEl, saveLocationTextBtn, revertLocationTextBtn, 'customLocationReleaseText', DEFAULT_LOCATION_TEXT);
 
             // --- Signature Pad Setup ---
-            function setupSignaturePad(canvas, onDrawCallback) {
-                const ctx = canvas.getContext('2d');
+            function createSignaturePad(canvasEl, onDrawCallback) {
+                const ctx = canvasEl.getContext('2d');
+                let isDrawing = false, lastX = 0, lastY = 0;
+
                 function resize() {
                     const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                    canvas.width = canvas.offsetWidth * ratio; canvas.height = canvas.offsetHeight * ratio;
+                    canvasEl.width = canvasEl.offsetWidth * ratio; canvasEl.height = canvasEl.offsetHeight * ratio;
                     ctx.scale(ratio, ratio);
                     ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
                 }
                 function getEventCoords(e) {
-                    const rect = canvas.getBoundingClientRect();
+                    const rect = canvasEl.getBoundingClientRect();
                     return e.touches && e.touches[0] ? [e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top] : [e.offsetX, e.offsetY];
                 }
                 function draw(e) {
@@ -304,35 +345,61 @@
                     ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); ctx.stroke();
                     [lastX, lastY] = [x, y]; onDrawCallback();
                 }
-                canvas.addEventListener('mousedown', (e) => { isDrawing = true; [lastX, lastY] = getEventCoords(e); });
-                canvas.addEventListener('mousemove', draw);
-                canvas.addEventListener('mouseup', () => isDrawing = false);
-                canvas.addEventListener('mouseout', () => isDrawing = false);
-                canvas.addEventListener('touchstart', (e) => { isDrawing = true; [lastX, lastY] = getEventCoords(e); });
-                canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
-                canvas.addEventListener('touchend', () => isDrawing = false);
+                canvasEl.addEventListener('mousedown', (e) => { isDrawing = true; [lastX, lastY] = getEventCoords(e); });
+                canvasEl.addEventListener('mousemove', draw);
+                canvasEl.addEventListener('mouseup', () => isDrawing = false);
+                canvasEl.addEventListener('mouseout', () => isDrawing = false);
+                canvasEl.addEventListener('touchstart', (e) => { isDrawing = true; [lastX, lastY] = getEventCoords(e); });
+                canvasEl.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+                canvasEl.addEventListener('touchend', () => isDrawing = false);
                 window.addEventListener('resize', resize); resize();
+                return { clear: () => ctx.clearRect(0, 0, canvasEl.width, canvasEl.height), resize: resize };
             }
-            setupSignaturePad(talentSigPad, () => { talentSignatureProvided = true; updateGenerateButtonState(); });
-            setupSignaturePad(materialsSigPad, () => { materialsSignatureProvided = true; updateGenerateButtonState(); });
-            setupSignaturePad(locationSigPad, () => { locationSignatureProvided = true; updateGenerateButtonState(); });
+            const talentSig = createSignaturePad(talentSigPad, () => { talentSignatureProvided = true; updateGenerateButtonState(); });
+            const talentMinorSig = createSignaturePad(talentMinorSigPad, () => { talentMinorSignatureProvided = true; updateGenerateButtonState(); });
+            const materialsSig = createSignaturePad(materialsSigPad, () => { materialsSignatureProvided = true; updateGenerateButtonState(); });
+            const locationSig = createSignaturePad(locationSigPad, () => { locationSignatureProvided = true; updateGenerateButtonState(); });
 
-            clearTalentSigBtn.addEventListener('click', () => { talentSigPad.getContext('2d').clearRect(0, 0, talentSigPad.width, talentSigPad.height); talentSignatureProvided = false; updateGenerateButtonState(); });
-            clearMaterialsSigBtn.addEventListener('click', () => { materialsSigPad.getContext('2d').clearRect(0, 0, materialsSigPad.width, materialsSigPad.height); materialsSignatureProvided = false; updateGenerateButtonState(); });
-            clearLocationSigBtn.addEventListener('click', () => { locationSigPad.getContext('2d').clearRect(0, 0, locationSigPad.width, locationSigPad.height); locationSignatureProvided = false; updateGenerateButtonState(); });
+            clearTalentSigBtn.addEventListener('click', () => { talentSig.clear(); talentSignatureProvided = false; updateGenerateButtonState(); });
+            clearTalentMinorSigBtn.addEventListener('click', () => { talentMinorSig.clear(); talentMinorSignatureProvided = false; updateGenerateButtonState(); });
+            clearMaterialsSigBtn.addEventListener('click', () => { materialsSig.clear(); materialsSignatureProvided = false; updateGenerateButtonState(); });
+            clearLocationSigBtn.addEventListener('click', () => { locationSig.clear(); locationSignatureProvided = false; updateGenerateButtonState(); });
 
             // --- Form Toggling ---
             function toggleForm(type) {
                 activeFormType = type;
-                talentFormContainer.classList.toggle('hidden', type !== 'talent');
-                materialsFormContainer.classList.toggle('hidden', type !== 'materials');
-                locationFormContainer.classList.toggle('hidden', type !== 'location');
+                const isTalent = type === 'talent' || type === 'talent-minor';
+                document.getElementById('talent-form-container').style.display = type === 'talent' ? 'block' : 'none';
+                document.getElementById('talent-minor-form-container').style.display = type === 'talent-minor' ? 'block' : 'none';
+                document.getElementById('materials-form-container').style.display = type === 'materials' ? 'block' : 'none';
+                document.getElementById('location-form-container').style.display = type === 'location' ? 'block' : 'none';
+
+                const photoSection = document.getElementById('photo-section');
+                if (isTalent) {
+                    photoSection.style.display = 'block';
+                    if (type === 'talent-minor') {
+                        talentMinorFormContainer.appendChild(photoSection);
+                        photoStepHeading.textContent = "Step 3: Verification Photo (of Minor)";
+                        talentMinorSig.resize();
+                    } else {
+                        talentFormContainer.appendChild(photoSection);
+                        photoStepHeading.textContent = "Step 3: Verification Photo";
+                        talentSig.resize();
+                    }
+                } else {
+                    photoSection.style.display = 'none';
+                }
+                if(type === 'materials') materialsSig.resize();
+                if(type === 'location') locationSig.resize();
+
                 selectTalentBtn.classList.toggle('active', type === 'talent'); selectTalentBtn.classList.toggle('inactive', type !== 'talent');
+                selectTalentMinorBtn.classList.toggle('active', type === 'talent-minor'); selectTalentMinorBtn.classList.toggle('inactive', type !== 'talent-minor');
                 selectMaterialsBtn.classList.toggle('active', type === 'materials'); selectMaterialsBtn.classList.toggle('inactive', type !== 'materials');
                 selectLocationBtn.classList.toggle('active', type === 'location'); selectLocationBtn.classList.toggle('inactive', type !== 'location');
                 updateGenerateButtonState();
             }
             selectTalentBtn.addEventListener('click', () => toggleForm('talent'));
+            selectTalentMinorBtn.addEventListener('click', () => toggleForm('talent-minor'));
             selectMaterialsBtn.addEventListener('click', () => toggleForm('materials'));
             selectLocationBtn.addEventListener('click', () => toggleForm('location'));
 
@@ -340,7 +407,6 @@
             startCameraBtn.addEventListener('click', async () => {
                 if (videoStream) videoStream.getTracks().forEach(track => track.stop());
                 try {
-                    // Prefer the rear camera ('environment')
                     videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
                     videoFeed.srcObject = videoStream; takePhotoBtn.disabled = false;
                     cameraPlaceholder.style.display = 'none'; videoFeed.style.display = 'block';
@@ -362,17 +428,24 @@
             function resetForm() {
                 if (activeFormType === 'talent') {
                     subjectNameEl.value = ''; subjectEmailEl.value = ''; subjectPhoneEl.value = '';
-                    talentSigPad.getContext('2d').clearRect(0, 0, talentSigPad.width, talentSigPad.height); talentSignatureProvided = false;
+                    talentSig.clear(); talentSignatureProvided = false;
+                    isPhotoTaken = false; photoPreview.src = ''; photoPreviewContainer.classList.add('hidden');
+                    if (videoStream) videoStream.getTracks().forEach(track => track.stop()); videoStream = null; videoFeed.srcObject = null;
+                    cameraPlaceholder.textContent = 'Camera feed will appear here'; cameraPlaceholder.style.display = 'block'; videoFeed.style.display = 'none';
+                    takePhotoBtn.disabled = true;
+                } else if (activeFormType === 'talent-minor') {
+                    minorNameEl.value = ''; parentNameEl.value = ''; parentEmailEl.value = ''; parentPhoneEl.value = '';
+                    talentMinorSig.clear(); talentMinorSignatureProvided = false;
                     isPhotoTaken = false; photoPreview.src = ''; photoPreviewContainer.classList.add('hidden');
                     if (videoStream) videoStream.getTracks().forEach(track => track.stop()); videoStream = null; videoFeed.srcObject = null;
                     cameraPlaceholder.textContent = 'Camera feed will appear here'; cameraPlaceholder.style.display = 'block'; videoFeed.style.display = 'none';
                     takePhotoBtn.disabled = true;
                 } else if (activeFormType === 'materials') {
                     grantorNameEl.value = ''; grantorCompanyEl.value = ''; grantorEmailEl.value = ''; grantorPhoneEl.value = ''; materialsDescEl.value = '';
-                    materialsSigPad.getContext('2d').clearRect(0, 0, materialsSigPad.width, materialsSigPad.height); materialsSignatureProvided = false;
+                    materialsSig.clear(); materialsSignatureProvided = false;
                 } else if (activeFormType === 'location') {
                     ownerNameEl.value = ''; locationAddressEl.value = ''; ownerEmailEl.value = ''; ownerPhoneEl.value = ''; locationTermsEl.value = '';
-                    locationSigPad.getContext('2d').clearRect(0, 0, locationSigPad.width, locationSigPad.height); locationSignatureProvided = false;
+                    locationSig.clear(); locationSignatureProvided = false;
                 }
                 updateGenerateButtonState();
             }
@@ -381,12 +454,13 @@
             function updateGenerateButtonState() {
                 let isValid = false;
                 if (activeFormType === 'talent') isValid = talentSignatureProvided && isPhotoTaken && subjectNameEl.value.trim() !== '';
+                else if (activeFormType === 'talent-minor') isValid = talentMinorSignatureProvided && isPhotoTaken && minorNameEl.value.trim() !== '' && parentNameEl.value.trim() !== '';
                 else if (activeFormType === 'materials') isValid = materialsSignatureProvided && grantorNameEl.value.trim() !== '' && materialsDescEl.value.trim() !== '';
                 else if (activeFormType === 'location') isValid = locationSignatureProvided && ownerNameEl.value.trim() !== '' && locationAddressEl.value.trim() !== '';
                 generateBtn.disabled = !isValid;
                 generateBtn.classList.toggle('animate-pulse', isValid);
             }
-            [subjectNameEl, grantorNameEl, materialsDescEl, ownerNameEl, locationAddressEl].forEach(el => el.addEventListener('input', updateGenerateButtonState));
+            [subjectNameEl, minorNameEl, parentNameEl, grantorNameEl, materialsDescEl, ownerNameEl, locationAddressEl].forEach(el => el.addEventListener('input', updateGenerateButtonState));
             
             // --- Generation Logic ---
             generateBtn.addEventListener('click', async () => {
@@ -400,13 +474,6 @@
                 const addContentToDoc = getPdfContentGenerator();
                 await addContentToDoc(doc, true, ctx); // Pass canvas context to render preview
                 
-                // Show/hide email button based on form type
-                if (activeFormType === 'talent') {
-                    emailFormBtn.style.display = 'none';
-                } else {
-                    emailFormBtn.style.display = 'block';
-                }
-
                 finalReleaseImage.src = canvas.toDataURL('image/png');
                 previewModal.classList.remove('hidden');
             });
@@ -420,6 +487,7 @@
 
             function getPdfContentGenerator() {
                 if (activeFormType === 'talent') return buildTalentPdf;
+                if (activeFormType === 'talent-minor') return buildTalentMinorPdf;
                 if (activeFormType === 'materials') return buildMaterialsPdf;
                 if (activeFormType === 'location') return buildLocationPdf;
             }
@@ -450,7 +518,9 @@
                 renderer.text(`Film Title: ${pName}`, MARGIN, y); y += 30;
 
                 const text = talentReleaseTextEl.value.replace(/\[Filmmaker\/Production Company\]/g, fName).replace(/\[Film Title\]/g, pName);
+                doc.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body); // Sync font for measurement
                 const splitText = doc.splitTextToSize(text, doc.internal.pageSize.width - MARGIN * 2);
+                renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
                 for (const line of splitText) {
                     y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas);
                     renderer.text(line, MARGIN, y);
@@ -484,6 +554,61 @@
                 renderer.setFontSize(FONT_SIZES.body).text(`Email: ${subjectEmailEl.value || 'N/A'}`, MARGIN, infoY); infoY += 15;
                 renderer.text(`Phone: ${subjectPhoneEl.value || 'N/A'}`, MARGIN, infoY);
             }
+
+            async function buildTalentMinorPdf(doc, isForPreviewCanvas, ctx) {
+                modalTitleEl.textContent = 'Generated Talent Release (Minor)';
+                const fName = filmmakerNameEl.value || 'N/A', pName = projectNameEl.value || 'N/A';
+                let y = MARGIN;
+                const renderer = isForPreviewCanvas ? new CanvasRenderer(ctx, 1240/doc.internal.pageSize.width) : new PdfRenderer(doc);
+
+                renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.title).text('Talent Release Form (Minor)', doc.internal.pageSize.width / 2, y, { align: 'center' });
+                y += 40;
+                renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                renderer.text(`Filmmaker/Production Co: ${fName}`, MARGIN, y); y += 15;
+                renderer.text(`Film Title: ${pName}`, MARGIN, y); y += 30;
+
+                const text = talentMinorReleaseTextEl.value.replace(/\[Filmmaker\/Production Company\]/g, fName).replace(/\[Film Title\]/g, pName);
+                doc.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                const splitText = doc.splitTextToSize(text, doc.internal.pageSize.width - MARGIN * 2);
+                renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                for (const line of splitText) {
+                    y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas);
+                    renderer.text(line, MARGIN, y);
+                    y += FONT_SIZES.body * 1.2;
+                }
+                y += 20;
+                
+                const sigWidth = 150, sigHeight = (sigWidth / talentMinorSigPad.offsetWidth) * talentMinorSigPad.offsetHeight;
+                const photoHeight = 112.5, photoWidth = 150;
+                const blockHeight = Math.max(sigHeight, photoHeight) + 120;
+                y = checkY(y, blockHeight, doc, isForPreviewCanvas);
+                
+                renderer.addImage(talentMinorSigPad.toDataURL('image/png'), 'PNG', MARGIN, y, sigWidth, sigHeight);
+                renderer.addImage(photoCanvas.toDataURL('image/jpeg'), 'JPEG', doc.internal.pageSize.width - MARGIN - photoWidth, y, photoWidth, photoHeight);
+                
+                let infoY = y + sigHeight + 10;
+                renderer.setDrawColor(150).line(MARGIN, infoY, MARGIN + sigWidth, infoY);
+                infoY += 12;
+                renderer.setFontSize(FONT_SIZES.small).text("Parent/Guardian Signature", MARGIN, infoY);
+                infoY += 20;
+                renderer.setFontSize(FONT_SIZES.body).text(parentNameEl.value, MARGIN, infoY);
+                renderer.line(MARGIN, infoY + 2, MARGIN + sigWidth, infoY + 2);
+                infoY += 12;
+                renderer.setFontSize(FONT_SIZES.small).text("Parent/Guardian Name", MARGIN, infoY);
+                infoY += 20;
+                renderer.setFontSize(FONT_SIZES.body).text(minorNameEl.value, MARGIN, infoY);
+                renderer.line(MARGIN, infoY + 2, MARGIN + sigWidth, infoY + 2);
+                infoY += 12;
+                renderer.setFontSize(FONT_SIZES.small).text("Minor's Name", MARGIN, infoY);
+                
+                renderer.setFontSize(FONT_SIZES.body).text(new Date().toLocaleDateString(), MARGIN + sigWidth + 20, y + sigHeight + 22);
+                renderer.line(MARGIN + sigWidth + 20, y + sigHeight + 24, doc.internal.pageSize.width - MARGIN - photoWidth - 10, y + sigHeight + 24);
+                renderer.setFontSize(FONT_SIZES.small).text('Date', MARGIN + sigWidth + 20, y + sigHeight + 36);
+
+                infoY += 20;
+                renderer.setFontSize(FONT_SIZES.body).text(`Email: ${parentEmailEl.value || 'N/A'}`, MARGIN, infoY); infoY += 15;
+                renderer.text(`Phone: ${parentPhoneEl.value || 'N/A'}`, MARGIN, infoY);
+            }
             
             async function buildMaterialsPdf(doc, isForPreviewCanvas, ctx) {
                  modalTitleEl.textContent = 'Generated Materials Release';
@@ -498,13 +623,17 @@
                  renderer.text(`Film Title: ${pName}`, MARGIN, y); y += 30;
 
                  const text = materialsReleaseTextEl.value.replace(/\[Filmmaker\/Production Company\]/g, fName).replace(/\[Film Title\]/g, pName);
+                 doc.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
                  let splitText = doc.splitTextToSize(text, doc.internal.pageSize.width - MARGIN * 2);
+                 renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
                  for (const line of splitText) { y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas); renderer.text(line, MARGIN, y); y += FONT_SIZES.body * 1.2; }
                  y += 20;
                  y = checkY(y, 20, doc, isForPreviewCanvas);
+                 doc.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.heading);
                  renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.heading).text('Description of Materials:', MARGIN, y); y += 20;
-                 renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                 doc.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
                  splitText = doc.splitTextToSize(materialsDescEl.value, doc.internal.pageSize.width - MARGIN * 2);
+                 renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
                  for (const line of splitText) { y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas); renderer.text(line, MARGIN, y); y += FONT_SIZES.body * 1.2; }
                  y += 30;
 
@@ -548,20 +677,28 @@
                  renderer.text(`Filmmaker/Production Co: ${fName}`, MARGIN, y); y += 15;
                  renderer.text(`Film Title: ${pName}`, MARGIN, y); y += 30;
 
+                 doc.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
                  let splitText = doc.splitTextToSize(locationReleaseTextEl.value.replace(/\[Filmmaker\/Production Company\]/g, fName).replace(/\[Film Title\]/g, pName), doc.internal.pageSize.width - MARGIN * 2);
+                 renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
                  for (const line of splitText) { y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas); renderer.text(line, MARGIN, y); y += FONT_SIZES.body * 1.2; }
                  y += 20;
 
-                 y = checkY(y, 20, doc, isForPreviewCanvas); renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.heading).text('Location Address:', MARGIN, y); y += 20;
-                 renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                 y = checkY(y, 20, doc, isForPreviewCanvas); 
+                 doc.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.heading);
+                 renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.heading).text('Location Address:', MARGIN, y); y += 20;
+                 doc.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
                  splitText = doc.splitTextToSize(locationAddressEl.value, doc.internal.pageSize.width - MARGIN * 2);
+                 renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
                  for (const line of splitText) { y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas); renderer.text(line, MARGIN, y); y += FONT_SIZES.body * 1.2; }
                  y += 20;
 
                  if (locationTermsEl.value.trim()) {
-                     y = checkY(y, 20, doc, isForPreviewCanvas); renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.heading).text('Specific Terms or Restrictions:', MARGIN, y); y += 20;
-                     renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
+                     y = checkY(y, 20, doc, isForPreviewCanvas); 
+                     doc.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.heading);
+                     renderer.setFont('helvetica', 'bold').setFontSize(FONT_SIZES.heading).text('Specific Terms or Restrictions:', MARGIN, y); y += 20;
+                     doc.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
                      splitText = doc.splitTextToSize(locationTermsEl.value, doc.internal.pageSize.width - MARGIN * 2);
+                     renderer.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
                      for (const line of splitText) { y = checkY(y, FONT_SIZES.body * 1.2, doc, isForPreviewCanvas); renderer.text(line, MARGIN, y); y += FONT_SIZES.body * 1.2; }
                      y += 30;
                  }
@@ -597,34 +734,11 @@
                 const doc = await buildPdf();
                 doc.save(getFilename());
             });
-
-            emailFormBtn.addEventListener('click', async () => {
-                const doc = await buildPdf();
-                doc.save(getFilename());
-
-                let recipientEmail = '';
-                if (activeFormType === 'talent') recipientEmail = subjectEmailEl.value;
-                else if (activeFormType === 'materials') recipientEmail = grantorEmailEl.value;
-                else if (activeFormType === 'location') recipientEmail = ownerEmailEl.value;
-
-                if (!recipientEmail) {
-                    alert('Please enter an email address for the recipient first.');
-                    return;
-                }
-
-                const subject = `Signed Release Form for ${projectNameEl.value || 'the film'}`;
-                const body = `Hello,\n\nThank you for signing the release form for the film "${projectNameEl.value || '(Not specified)'}".\n\nPlease find the completed PDF attached to this email for your records.\n\n(Note: You may need to manually attach the file you just downloaded if your email client does not do it automatically.)\n\nThank you,\n${filmmakerNameEl.value || 'The Filmmaker'}`;
-                
-                const mailtoLink = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-                const originalText = emailFormBtn.textContent;
-                emailFormBtn.textContent = 'PDF downloaded. Opening email...';
-                setTimeout(() => { window.location.href = mailtoLink; emailFormBtn.textContent = originalText; }, 2500);
-            });
             
             function getFilename() {
                 let name;
                 if (activeFormType === 'talent') name = subjectNameEl.value;
+                else if (activeFormType === 'talent-minor') name = parentNameEl.value;
                 else if (activeFormType === 'materials') name = grantorNameEl.value;
                 else name = ownerNameEl.value;
                 const safeFilename = (name || 'release').replace(/[^a-z0-9]/gi, '_').toLowerCase();
